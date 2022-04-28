@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  php:
+    build:
+      context: ./php 
+    image: php/lesson51:20220425
+    container_name: php51
+    volumes:
+      - type: bind
+        source: ./src
+        target: /var/www/html 
+    networks:
+      - sample_nw
+  web:
+    build: 
+      context: ./web
+    image: nginx/lesson51:20220425 
+    container_name: web51
+    ports:
+      - '80:80'
+    volumes:
+      - type: bind
+        source: ./src
+        target: /var/www/html
+    networks:
+      - sample_nw
+
+  data: 
+    image: mysql:5.7 
+    container_name: data51 
+    volumes: 
+      - type: volume 
+        source: storage 
+        target: /var/lib/mysql 
+      - type: bind 
+        source: ./data/initdb 
+        target: /docker-entrypoint-initdb.d 
+    environment: 
+      MYSQL_DATABASE: sampledb 
+      MYSQL_USER: sample 
+      MYSQL_PASSWORD: pass 
+      MYSQL_ROOT_PASSWORD: pass 
+    ports: 
+      - '3306:3306' 
+    networks: 
+      - sample_nw 
+  phpmyadmin: 
+    image: phpmyadmin/phpmyadmin 
+    container_name: phpmyadmin 
+    environment: 
+      PMA_HOST: data 
+      PMA_USER: sample 
+      PMA_PASSWORD: pass 
+    ports: 
+      - 8080:80 
+    networks: 
+      - sample_nw
+
+networks:
+  sample_nw:
+    name: sample_nw
+    driver: bridge
+
+volumes:
+  storage:
